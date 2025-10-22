@@ -5,5 +5,5 @@ from torch import Tensor
 from torch import nn
 
 
-class ScoreNetwork(nn.Module):
+class ScoreNet(nn.Module):
     pass

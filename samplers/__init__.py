@@ -1,2 +1,2 @@
-from LangevinDynamics import LangevinDynamics
-from AnnealedLangevin import AnnealedLangevinDynamics
+from .LangevinDynamics import LangevinDynamics
+from .AnnealedLangevin import AnnealedLangevinDynamics

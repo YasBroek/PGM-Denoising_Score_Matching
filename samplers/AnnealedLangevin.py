@@ -5,6 +5,7 @@ from torch import Tensor
 from torch import nn
 
 from . import LangevinDynamics
+from ..utils import LambdaModule
 
 
 class AnnealedLangevinDynamics:
@@ -23,7 +24,7 @@ class AnnealedLangevinDynamics:
         all_samples = [x0]
 
         for i in range(self.L):
-            score_sigma = nn.Module(lambda x_in: self.score(x_in, self.sigmas[i]))
+            score_sigma = LambdaModule(lambda x_in: self.score(x_in, self.sigmas[i]))
             sampler = LangevinDynamics(score_sigma, self.device)
 
             step_size = epsilon * (self.sigmas[i] / self.sigmas[-1]) ** 2

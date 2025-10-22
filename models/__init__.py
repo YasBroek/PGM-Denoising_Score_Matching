@@ -1,1 +1,1 @@
-from ScoreNetwork import ScoreNetwork
+from .ScoreNet import ScoreNet

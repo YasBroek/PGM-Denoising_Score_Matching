@@ -5,6 +5,8 @@ from torch import nn
 
 class ScoreMatchingLoss(nn.Module):
     def __init__(self, perturbation="gaussian", **kwargs):
+        super().__init__()
+
         if perturbation == "gaussian":
             self.q = self._gaussian_noise
             self.score_q = self._gaussian_score_q
@@ -15,13 +17,13 @@ class ScoreMatchingLoss(nn.Module):
         noise = torch.randn_like(x)
         sigma = self.kwargs.get("sigma", 1)
 
-        x_noisy = torch.sqrt(sigma) * noise + x
+        x_noisy = sigma * noise + x
         return x_noisy
 
     def _gaussian_score_q(self, x, x_noisy):
-        sigma = self.kwargs.get("sigma", 1)
+        sigma = Tensor(self.kwargs.get("sigma", 1), device=x.device)
 
-        return -(x_noisy - x) / sigma
+        return -(x_noisy - x) / (sigma**2)
 
     def forward(self, x: Tensor, score: nn.Module):
         x_noisy = self.q(x)
@@ -29,6 +31,6 @@ class ScoreMatchingLoss(nn.Module):
         out = score(x_noisy)
         target = self.score_q(x, x_noisy)
 
-        loss = 0.5 * torch.square(out - target).mean(dim=0)
+        loss = 0.5 * torch.square(out - target).mean()
 
         return loss
