@@ -20,7 +20,7 @@ class LangevinDynamics:
 
         for t in range(T):
             z_t = torch.randn_like(x0)
-            x_t = x[t - 1] + 0.5 * step_size * self.score(x[-1]) + torch.sqrt(step_size) * z_t
+            x_t = x[t - 1] + 0.5 * step_size * self.score(x[t - 1]) + torch.sqrt(step_size) * z_t
 
             x[t] = x_t
 
