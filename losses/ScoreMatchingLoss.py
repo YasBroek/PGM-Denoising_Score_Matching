@@ -2,34 +2,21 @@ import torch
 from torch import Tensor
 from torch import nn
 
+from . import Perturbation
+
 
 class ScoreMatchingLoss(nn.Module):
-    def __init__(self, perturbation="gaussian", **kwargs):
+    def __init__(self, perturbation: Perturbation, *params):
         super().__init__()
 
-        if perturbation == "gaussian":
-            self.q = self._gaussian_noise
-            self.score_q = self._gaussian_score_q
-
-        self.kwargs = kwargs
-
-    def _gaussian_noise(self, x: Tensor):
-        noise = torch.randn_like(x)
-        sigma = self.kwargs.get("sigma", 1)
-
-        x_noisy = sigma * noise + x
-        return x_noisy
-
-    def _gaussian_score_q(self, x, x_noisy):
-        sigma = torch.as_tensor(self.kwargs.get("sigma", 1), device=x.device)
-
-        return -(x_noisy - x) / (sigma**2)
+        self.perturbation = perturbation
+        self.params = params
 
     def forward(self, x: Tensor, score: nn.Module):
-        x_noisy = self.q(x)
+        x_noisy = self.perturbation.noise(x, *self.params)
 
         out = score(x_noisy)
-        target = self.score_q(x, x_noisy)
+        target = self.perturbation.score(x, x_noisy, *self.params)
 
         loss = 0.5 * torch.square(out - target).mean()
 
