@@ -21,7 +21,7 @@ class ScoreMatchingLoss(nn.Module):
         return x_noisy
 
     def _gaussian_score_q(self, x, x_noisy):
-        sigma = Tensor(self.kwargs.get("sigma", 1), device=x.device)
+        sigma = torch.as_tensor(self.kwargs.get("sigma", 1), device=x.device)
 
         return -(x_noisy - x) / (sigma**2)
 

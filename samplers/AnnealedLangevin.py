@@ -21,14 +21,16 @@ class AnnealedLangevinDynamics:
             x0 = torch.rand(shape).to(self.device)
 
         x = x0
-        all_samples = [x0]
+        all_samples = [x]
 
         for i in range(self.L):
             score_sigma = LambdaModule(lambda x_in: self.score(x_in, self.sigmas[i]))
             sampler = LangevinDynamics(score_sigma, self.device)
 
             step_size = epsilon * (self.sigmas[i] / self.sigmas[-1]) ** 2
+
             x = sampler.sample(shape, x, T, step_size, False)
+            all_samples.append(x)
 
         if return_all_samples:
             return all_samples
