@@ -1,8 +1,6 @@
-import torch
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
-from typing import Optional, Tuple
-import os
+from typing import Tuple
 
 # Classes in this file are yet to be tested
 

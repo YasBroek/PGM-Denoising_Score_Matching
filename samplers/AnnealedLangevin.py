@@ -5,7 +5,7 @@ from torch import Tensor
 from torch import nn
 
 from . import LangevinDynamics
-from ..utils import LambdaModule
+from utils import LambdaModule
 
 
 class AnnealedLangevinDynamics:
