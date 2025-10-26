@@ -56,8 +56,10 @@ class Trainer:
 
         return mean_loss
 
-    def train(self, loss: Module, optimizer: Optimizer, epochs: int = 10, verbose: bool = False):
-        self._reset_models()
+    def train(self, loss: Module, optimizer: Optimizer, epochs: int = 10, verbose: bool = False, reset: bool = True):
+        if reset:
+            self._reset_models()
+
         self.score_net.train()
 
         losses = []

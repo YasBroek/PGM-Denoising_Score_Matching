@@ -1,4 +1,3 @@
-import torch
 from torch import Tensor
 from torch import nn
 
@@ -13,11 +12,11 @@ class ScoreMatchingLoss(nn.Module):
         self.params = params
 
     def forward(self, x: Tensor, score: nn.Module):
+        B = x.shape[0]
         x_noisy = self.perturbation.noise(x, *self.params)
 
-        out = score(x_noisy)
-        target = self.perturbation.score(x, x_noisy, *self.params)
+        pred = score(x_noisy).view(B, -1)
+        target = self.perturbation.score(x, x_noisy, *self.params).view(B, -1)
 
-        loss = 0.5 * torch.square(out - target).mean()
-
+        loss = 0.5 * ((pred - target) ** 2).mean(dim=-1)
         return loss

@@ -23,17 +23,11 @@ class NCSNLoss(nn.Module):
         L = len(self.sigmas)
         B = x.size(0)
 
-        loss = 0
+        labels = torch.randint(0, L, (B,), device=x.device)
+        used_sigmas = self.sigmas[labels].view(-1, 1, 1, 1)
 
-        indices = torch.randperm(L, device=x.device)[: self.K]
-        used_sigmas = self.sigmas[indices]
+        sm_loss = ScoreMatchingLoss(self.perturbation, used_sigmas)
+        score_sigma = LambdaModule(lambda x_in: score(x_in, labels))
 
-        for i, sigma in zip(indices, used_sigmas):
-            labels = torch.full((B,), i.item(), dtype=torch.long, device=x.device)
-
-            sm_loss = ScoreMatchingLoss(self.perturbation, sigma)
-            score_sigma = LambdaModule(lambda x_in: score(x_in, labels))
-
-            loss += self.coeff_func(sigma) * sm_loss(x, score_sigma)
-
-        return loss / self.K
+        loss = self.coeff_func(used_sigmas.view(B)) * sm_loss(x, score_sigma)
+        return loss.mean()
