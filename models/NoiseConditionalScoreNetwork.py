@@ -273,6 +273,9 @@ class NCSN(nn.Module):
         )
 
     def forward(self, x: Tensor, y: Tensor):
+        if x.dim() == 3:
+            x = x.unsqueeze(0)
+
         output = self.begin_conv(x)
         output = self.residual_block(output, y)
 

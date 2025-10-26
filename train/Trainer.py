@@ -49,8 +49,12 @@ class Trainer:
             losses.append(loss_e)
             n += 1
 
+        mean_loss = sum(losses) / n
+
         if verbose:
-            print(f"Epoch {epoch + 1} (Loss: {sum(losses) / n:.4f})")
+            print(f"Epoch {epoch + 1} (Loss: {mean_loss:.4f})")
+
+        return mean_loss
 
     def train(self, loss: Module, optimizer: Optimizer, epochs: int = 10, verbose: bool = False):
         self._reset_models()
@@ -62,4 +66,4 @@ class Trainer:
             loss_e = self._train_epoch(e, loss, optimizer, verbose)
             losses.append(loss_e)
 
-        return torch.as_tensor(losses)
+        return torch.stack(losses)
