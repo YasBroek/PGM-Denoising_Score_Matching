@@ -18,5 +18,5 @@ class ScoreMatchingLoss(nn.Module):
         pred = score(x_noisy).view(B, -1)
         target = self.perturbation.score(x, x_noisy, *self.params).view(B, -1)
 
-        loss = 0.5 * ((pred - target) ** 2).mean(dim=-1)
+        loss = 0.5 * ((pred - target) ** 2).sum(dim=-1)
         return loss

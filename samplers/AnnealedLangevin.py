@@ -40,7 +40,7 @@ class AnnealedLangevinDynamics:
 
             step_size = epsilon * (self.sigmas[i] / self.sigmas[-1]) ** 2
 
-            x = sampler.sample(shape, x, T, step_size, False)
+            x = sampler.sample(shape, x, T, step_size)
             all_samples.append(x)
 
         if return_all_samples:

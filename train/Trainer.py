@@ -1,5 +1,5 @@
 import torch
-from torch import mean
+from torch import isin, mean
 from torch.nn import Module
 from torch.optim import Optimizer
 from torch.utils.data import DataLoader
@@ -36,9 +36,10 @@ class Trainer:
         losses = []
         n = 0
 
-        for x, y in loader:
+        for x in loader:
+            if isinstance(x, tuple) or isinstance(x, list):
+                x = x[0]
             x = x.to(self.device)
-            y = y.to(self.device)
 
             loss_e = loss(x, self.score_net)
 
@@ -46,7 +47,7 @@ class Trainer:
             loss_e.backward()
             optimizer.step()
 
-            losses.append(loss_e)
+            losses.append(loss_e.item())
             n += 1
 
         mean_loss = sum(losses) / n
@@ -68,4 +69,4 @@ class Trainer:
             loss_e = self._train_epoch(e, loss, optimizer, verbose)
             losses.append(loss_e)
 
-        return torch.stack(losses)
+        return torch.tensor(losses, device=self.device)

@@ -1,2 +1,2 @@
-from .ScoreNet import ScoreNet
 from .NoiseConditionalScoreNetwork import NCSN
+from .ScoreNet import ScoreNet

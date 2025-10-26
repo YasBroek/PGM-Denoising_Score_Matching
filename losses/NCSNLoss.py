@@ -24,7 +24,7 @@ class NCSNLoss(nn.Module):
         B = x.size(0)
 
         labels = torch.randint(0, L, (B,), device=x.device)
-        used_sigmas = self.sigmas[labels].view(-1, 1, 1, 1)
+        used_sigmas = self.sigmas[labels].view(-1, *([1] * (x.dim() - 1)))
 
         sm_loss = ScoreMatchingLoss(self.perturbation, used_sigmas)
         score_sigma = LambdaModule(lambda x_in: score(x_in, labels))
