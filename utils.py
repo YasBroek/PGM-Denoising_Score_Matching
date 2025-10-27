@@ -1,4 +1,18 @@
+import torch
 from torch import nn
+
+
+def get_torch_device():
+    if torch.cuda.is_available():
+        return torch.device("cuda")
+
+    if torch.version.hip and torch.version.hip != "":  # ROCm (AMD)
+        return torch.device("cuda")
+
+    if torch.backends.mps.is_available():
+        return torch.device("mps")
+
+    return torch.device("cpu")
 
 
 class LambdaModule(nn.Module):
