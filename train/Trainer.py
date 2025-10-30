@@ -1,20 +1,18 @@
 import torch
-from torch import isin, mean
-from torch.nn import Module
+from torch import Tensor
+from torch.nn import Module, ModuleList
 from torch.optim import Optimizer
 from torch.utils.data import DataLoader
 
 from tqdm.notebook import tqdm
 
-from models.NoiseConditionalScoreNetwork import NCSN
-
 
 class Trainer:
-    def __init__(self, train_loader: DataLoader, score_net: NCSN, device: torch.device = torch.device("cpu")):
+    def __init__(self, train_loader: DataLoader, models: ModuleList, device: torch.device = torch.device("cpu")):
         self.device = device
-
         self._train_loader = train_loader
-        self.score_net = score_net.to(device)
+
+        self.models = [model.to(device) for model in models]
 
     def _reset_models(self):
         """
@@ -22,9 +20,13 @@ class Trainer:
 
         Loops through all modules in each network and calls `reset_parameters()` if the method exists.
         """
-        for m in self.score_net.modules():
-            if hasattr(m, "reset_parameters"):
-                m.reset_parameters()  # type: ignore[operator]
+        for model in self.models:
+            for module in model.modules():
+                if hasattr(module, "reset_parameters"):
+                    module.reset_parameters()  # type: ignore[operator]
+
+    def _loss_batch(self, x: Tensor, loss: Module) -> Tensor:
+        raise NotImplementedError()
 
     def _train_epoch(self, epoch: int, loss: Module, optimizer: Optimizer, verbose: bool):
         if verbose:
@@ -34,34 +36,33 @@ class Trainer:
 
         loss_e = 0
         losses = []
-        n = 0
 
         for x in loader:
             if isinstance(x, tuple) or isinstance(x, list):
                 x = x[0]
             x = x.to(self.device)
 
-            loss_e = loss(x, self.score_net)
+            loss_e = self._loss_batch(x, loss)
 
             optimizer.zero_grad()
             loss_e.backward()
             optimizer.step()
 
             losses.append(loss_e.item())
-            n += 1
 
-        mean_loss = sum(losses) / n
+        total_loss = sum(losses) / len(losses)
 
         if verbose:
-            print(f"Epoch {epoch + 1} (Loss: {mean_loss:.4f})")
+            print(f"Epoch {epoch + 1} (Loss: {total_loss:.4f})")
 
-        return mean_loss
+        return total_loss
 
     def train(self, loss: Module, optimizer: Optimizer, epochs: int = 10, verbose: bool = False, reset: bool = True):
         if reset:
             self._reset_models()
 
-        self.score_net.train()
+        for model in self.models:
+            model.train()
 
         losses = []
 
