@@ -52,9 +52,7 @@ class Trainer:
 
         total_loss = sum(losses) / len(losses)
 
-        if verbose:
-            print(f"Epoch {epoch + 1} (Loss: {total_loss:.4f})")
-
+        print(f"Epoch {epoch + 1} (Loss: {total_loss:.4f})")
         return total_loss
 
     def train(self, loss: Module, optimizer: Optimizer, epochs: int = 10, verbose: bool = False, reset: bool = True):
