@@ -10,14 +10,12 @@ from . import ScoreMatchingLoss, Perturbation
 
 
 class NCSNLoss(nn.Module):
-    def __init__(self, perturbation: Perturbation, sigmas: Tensor, coeff_func: Callable, K: int = 6):
+    def __init__(self, perturbation: Perturbation, sigmas: Tensor, coeff_func: Callable):
         super().__init__()
 
         self.perturbation = perturbation
         self.coeff_func = coeff_func
         self.sigmas = sigmas
-
-        self.K = K
 
     def forward(self, x: Tensor, score: nn.Module):
         L = len(self.sigmas)
