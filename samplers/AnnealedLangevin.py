@@ -16,23 +16,13 @@ class AnnealedLangevinDynamics:
 
         self.L = sigmas.size(dim=0)
 
-    def sample(
+    def _sample(
         self,
-        arg: Tensor | Size | tuple | list | NoneType = None,
+        x: Tensor,
         T: int = 100,
         epsilon: float = 2e-5,
         return_all_samples: bool = False,
     ):
-        if arg is None:
-            raise ValueError("Specify either shape or x.")
-
-        if isinstance(arg, (Size, tuple, list)):
-            shape = arg
-            x = torch.rand(shape).to(self.device)
-        elif isinstance(arg, Tensor):
-            x = arg.to(self.device)
-            shape = x.shape
-
         self.score = self.score.to(self.device)
         self.sigmas = self.sigmas.to(self.device)
 
@@ -51,3 +41,45 @@ class AnnealedLangevinDynamics:
             return all_samples
 
         return x
+
+    def sample_from_tensor(self, x: Tensor, N: int | NoneType = None, mean: Tensor | NoneType = None, std: Tensor | NoneType = None, T: int = 100, epsilon: float = 2e-5, return_all_samples: bool = False):
+        if N is not None and N <= 0:
+            raise ValueError("Number of samples cannot be negative.")
+
+        if N is not None:
+            x = x.unsqueeze(0).repeat(N, *([1] * x.dim()))
+
+        if mean is None:
+            mean = torch.zeros_like(x)
+        elif mean.dim() == x.dim() - 1:
+            mean = mean[None, ...]
+        else:
+            raise ValueError("Mean must have the same dimension as the samples.")
+
+        if std is None:
+            std = torch.ones_like(x)
+        elif std.dim() == x.dim() - 1:
+            std = std[None, ...]
+        else:
+            raise ValueError("Std must have the same dimension as the samples.")
+
+        y = self._sample(x, T, epsilon, return_all_samples)
+
+        if isinstance(y, list):
+            for i in range(len(y)):
+                y[i] = std * y[i] + mean
+        else:
+            y = std * y + mean
+
+        return y
+
+    def sample(self, shape: Size | tuple | list, N: int | NoneType = None, mean: Tensor | NoneType = None, std: Tensor | NoneType = None, T: int = 100, epsilon: float = 2e-5, return_all_samples: bool = False):
+        if N is not None and N <= 0:
+            raise ValueError("Number of samples cannot be negative.")
+
+        if N is not None:
+            shape = (N, *shape)
+
+        x = torch.rand(shape).to(self.device)
+
+        return self.sample_from_tensor(x, None, mean, std, T, epsilon, return_all_samples)
