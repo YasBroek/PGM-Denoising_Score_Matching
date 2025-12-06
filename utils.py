@@ -1,8 +1,10 @@
+import os
 import copy
 
 import torch
 from torch import nn
 from torch.nn import functional as F
+from matplotlib import pyplot as plt
 
 
 def get_torch_device():
@@ -16,6 +18,49 @@ def get_torch_device():
         return torch.device("mps")
 
     return torch.device("cpu")
+
+
+def save_checkpoint(filename, model, optimizer, losses, description=""):
+    state = {
+        "model_state_dict": model.state_dict(),
+        "optimizer_state_dict": optimizer.state_dict(),
+        "losses": losses,
+        "description": description,
+    }
+
+    file = os.path.join("checkpoints", filename)
+    torch.save(state, file)
+
+
+def load_checkpoint(filename, model, optimizer, device="cpu"):
+    file = os.path.join("checkpoints", filename)
+
+    if not os.path.exists(file):
+        return []
+
+    checkpoint = torch.load(file, map_location=device)
+
+    model = model.to(device)
+    model.load_state_dict(checkpoint["model_state_dict"])
+    optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+
+    losses = checkpoint["losses"]
+    desc = checkpoint["description"]
+
+    print(desc)
+
+    return losses
+
+
+def plot_img(img):
+    img = img.permute(1, 2, 0).cpu().numpy()
+
+    if img.shape[2] == 1:
+        plt.imshow(img, cmap="gray")
+    else:
+        plt.imshow(img)
+
+    plt.show()
 
 
 def compute_mean_std_channels(train_loader, encoder, device: torch.device = get_torch_device()):

@@ -1,34 +1,23 @@
-from types import NoneType
 import torch
-from torch import Tensor, Size
+from torch import Tensor
 from torch import nn
 
+from . import LangevinSampler
 from utils import get_torch_device
 
 
-class LangevinDynamics:
-    def __init__(self, score: nn.Module, device: torch.device = get_torch_device()):
-        self.score = score.to(device)
-        self.device = device
+class LangevinDynamics(LangevinSampler):
+    def __init__(self, score: nn.Module, step_size: float | Tensor = 1e-6, device: torch.device = get_torch_device()):
+        super().__init__(score, device)
 
-    def sample(self, arg: Tensor | Size | tuple | list | NoneType = None, T: int = 10, step_size: float | Tensor = 1e-6) -> Tensor:
+        self.step_size = torch.as_tensor(step_size, device=self.device)
+
+    def _sample(self, x: Tensor, T: int = 100, epsilon: float = 2e-5, return_all_samples: bool = False) -> Tensor:
         self.score.eval()
-
-        if arg is None:
-            raise ValueError("Specify either shape or x.")
-
-        if isinstance(arg, (Size, tuple, list)):
-            shape = arg
-            x = torch.rand(shape).to(self.device)
-        elif isinstance(arg, Tensor):
-            x = arg.to(self.device)
-            shape = x.shape
-
-        step_size = torch.as_tensor(step_size, device=self.device)
 
         with torch.no_grad():
             for _ in range(T):
                 z_t = torch.randn_like(x).to(self.device)
-                x = x + 0.5 * step_size * self.score(x) + torch.sqrt(step_size) * z_t
+                x = x + 0.5 * self.step_size * self.score(x) + torch.sqrt(self.step_size) * z_t
 
         return x

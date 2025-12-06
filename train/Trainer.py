@@ -1,3 +1,4 @@
+from typing import Optional
 import torch
 from torch import Tensor
 from torch.nn import Module, ModuleList
@@ -55,17 +56,20 @@ class Trainer:
         print(f"Epoch {epoch + 1} (Loss: {total_loss:.4f})")
         return total_loss
 
-    def train(self, loss: Module, optimizer: Optimizer, epochs: int = 10, verbose: bool = False, reset: bool = True):
+    def train(self, loss: Module, optimizer: Optimizer, losses: Optional[list] = None, epochs: int = 10, verbose: bool = False, reset: bool = True):
         if reset:
             self._reset_models()
 
         for model in self.models:
             model.train()
 
-        losses = []
+        if losses is None:
+            losses = []
 
-        for e in range(epochs):
+        E = len(losses)
+
+        for e in range(E, E + epochs):
             loss_e = self._train_epoch(e, loss, optimizer, verbose)
             losses.append(loss_e)
 
-        return torch.tensor(losses, device=self.device)
+        return losses

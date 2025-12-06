@@ -273,8 +273,10 @@ class NCSN(nn.Module):
         )
 
     def forward(self, x: Tensor, y: Tensor):
+        squeeze = False
         if x.dim() == 3:
             x = x.unsqueeze(0)
+            squeeze = True
 
         output = self.begin_conv(x)
         output = self.residual_block(output, y)
@@ -294,5 +296,8 @@ class NCSN(nn.Module):
 
         output = ref
         output = self.final_block(output, y)
+
+        if squeeze:
+            output = output.squeeze(0)
 
         return output
